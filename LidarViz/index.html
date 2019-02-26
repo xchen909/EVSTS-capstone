@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset = "UTF-8">
+      <title>Hello World!</title>
+      <script src="js/three.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="style.css"/>
+   </head>
+   
+   <body>
+       <!--
+      <h1>Hello World!</h1>
+      We are using node <script>document.write(process.versions.node)</script>,
+      Chrome <script>document.write(process.versions.chrome)</script>,
+      and Electron <script>document.write(process.versions.electron)</script>.
+       -->
+        <div id="sidebar"></div>
+        <div id="canvas"></div>
+    </body>
+
+    <script>
+        var camera, scene, renderer;
+        var geometry, material, mesh;
+        var canvas = document.getElementById('canvas');
+        var fs = require('fs');
+        var textByLine = fs.readFileSync('polyterrasse011.ezd').toString().split("\n");
+        var points = [];
+        for (i = 0; i < textByLine.length; i++){
+            line = textByLine[i].split(' ');
+            if (line.length == 4){
+                points.push([parseFloat(line[0]),parseFloat(line[1]),parseFloat(line[2])]);
+            }
+        }
+        /*
+        for (p=0; p <points.length;p++){
+            console.log(points[p]);
+        }
+        */
+        init();
+        animate();
+        
+        function init() {
+        
+            camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 100 );
+            camera.position.z = 10;
+            camera.position.y = 0;
+            camera.position.x = 0;
+
+            scene = new THREE.Scene();
+            max = 1500;
+            for (i = 1; i < points.length; i++){
+                geometry = new THREE.BoxGeometry( 0.01, 0.01, 0.01);
+                material = new THREE.MeshNormalMaterial();
+            
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set(points[i][0],points[i][1],points[i][2]);
+                scene.add( mesh );
+                /*
+                if (i > max){
+                    break;
+                }
+                */
+            }
+
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            canvas.appendChild( renderer.domElement );
+        }
+        
+        function animate() {
+        
+            requestAnimationFrame( animate );
+        
+            camera.rotation.x += 0.01;
+            camera.rotation.y += 0.01;
+        
+            renderer.render( scene, camera );
+        
+        }
+    </script>
+</html>

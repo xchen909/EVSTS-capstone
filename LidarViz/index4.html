@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>File Navigator</title>
+    </head>
+    <body>
+        <div id="app">
+            <br />
+            <input type="text" id="field" value="Folder" />
+            <input type="button" id="btn" value="Submit" />
+        </div>
+        <div>
+            <ul id="list"></ul>
+        </div>
+
+        <script>
+            var fs = require('fs');
+            const { ipcRenderer } = require('electron');
+            
+            document.getElementById("btn").addEventListener("click", () => {
+                var files = fs.readdirSync(document.getElementById("field").value);
+                for (i = 0; i < files.length; i++){
+                    var list = document.getElementById("list");
+                    var item = document.createElement("li");
+                    item.appendChild(document.createTextNode(files[i]));
+                    item.classList.add("item");
+                    item.addEventListener("click", function viz(e){
+                        // Some data that will be sent to the main process
+                        let Data = {
+                            filepath: this.innerText
+                        };
+                        // Trigger the event listener action to this event in the renderer process and send the data
+                        ipcRenderer.send('request-update-in-main-window', Data);
+                    });
+                    list.appendChild(item);
+                }
+            }, false);
+            
+            
+        </script>
+    </body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset = "UTF-8">
+      <title>LidarViz</title>
+      <script src="js/three.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="style.css"/>
+   </head>
+   
+   <body>
+    <div id="canvas"></div>
+   </body>
+
+    <script>
+
+        const { ipcRenderer } = require('electron');
+
+        var camera, scene, renderer;
+        var geometry, material, mesh;
+        var canvas = document.getElementById('canvas');
+        var fs = require('fs');
+        var points = [];
+
+        /*
+        for (p=0; p <points.length;p++){
+            console.log(points[p]);
+        }
+        */
+        //init();
+        //animate();
+        
+        function init() {
+        
+            camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 100 );
+            camera.position.z = 10;
+            camera.position.y = 0;
+            camera.position.x = 0;
+
+            scene = new THREE.Scene();
+            var geometry = new THREE.BufferGeometry();
+			var vertices = [];
+            for (i = 1; i < points.length; i++){
+                vertices.push(points[i][0],points[i][1],points[i][2]);
+            }
+            geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+            material = new THREE.PointsMaterial( { size: 0.05} );
+            var particles = new THREE.Points( geometry, material);
+            scene.add( particles );
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            canvas.appendChild( renderer.domElement );
+            document.body.addEventListener('keydown', keyPressed);
+            render();
+        }
+        
+        function render() {
+            renderer.render( scene, camera );
+        }
+
+        function keyPressed(e){
+            switch(e.key) {
+                case 'ArrowUp':
+                    camera.rotateX(-0.1);
+                    break;
+                case 'ArrowDown':
+                    camera.rotateX(0.1);
+                    break;
+                case 'ArrowLeft':
+                    camera.rotateY(-0.1);
+                    break;
+                case 'ArrowRight':
+                    camera.rotateY(0.1);
+                    break;
+            }
+            switch(e.code){
+                case 'KeyW':
+                    camera.position.z += 0.1;
+                    break;
+                case 'KeyS':
+                    camera.position.z -= 0.1;
+                    break;
+            }
+            e.preventDefault();
+            render();
+        }
+
+        ipcRenderer.on('action-update', (event, arg) => {
+
+        // Update the second window label content with the data sent from
+        // the first window :) !
+        /*
+        let label = document.getElementById("label");
+
+        label.innerHTML = arg.message;
+        label.style.color = arg.color;
+        label.style.backgroundColor = arg.backgroundColor;
+        */
+        var textByLine = fs.readFileSync(arg.filepath).toString().split("\n");
+        for (i = 0; i < textByLine.length; i++){
+            line = textByLine[i].split(' ');
+            if (line.length == 4){
+                points.push([parseFloat(line[0]),parseFloat(line[1]),parseFloat(line[2])]);
+            }
+        }
+        init();
+        });
+    </script>
+</html>
